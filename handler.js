@@ -1,11 +1,17 @@
-import { graphqlLambda, graphiqlLambda } from "apollo-server-lambda";
+import { graphqlLambda } from "apollo-server-lambda";
 import { makeExecutableSchema } from "graphql-tools";
-import { schema } from "./src/schema";
-import { resolvers } from "./src/resolvers";
+import { fileLoader, mergeResolvers, mergeTypes } from "merge-graphql-schemas";
+
+import path from "path";
+
+const allTypes = fileLoader(path.join(__dirname, "./src/api/**/*.graphql"));
+const allResolvers = fileLoader(path.join(__dirname, "./src/api/**/*.ts"));
+const mergedTypes = mergeTypes(allTypes);
+const mergedResolvers = mergeResolvers(allResolvers);
 
 const myGraphQLSchema = makeExecutableSchema({
-  typeDefs: schema,
-  resolvers
+  typeDefs: mergedTypes,
+  resolvers: mergedResolvers
 });
 
 exports.graphqlHandler = function graphqlHandler(event, context, callback) {
